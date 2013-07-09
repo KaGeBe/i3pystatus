@@ -39,6 +39,9 @@ class PluginModuleBase:
     def run(self):
         self.output = self.plugin.run()
 
+    def __repr__(self):
+        return str(self.plugin)
+
 
 class PluginModule(PluginModuleBase, Module):
     pass
