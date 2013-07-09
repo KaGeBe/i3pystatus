@@ -55,7 +55,8 @@ class Config:
                     self.modules.reverse()
                     self.call_start_hooks()
                     for module in self.modules:
-                        sys.stdout.write("{module}: ".format(module=module.__name__))
+                        sys.stdout.write("{parent}.{module}: ".format(
+                            parent=module.__module__, module=str(module)))
                         sys.stdout.flush()
                         test = module.test()
                         if test is not True:
