@@ -12,6 +12,12 @@ class DefaultPlugin:
     def on_rightclick(self):
         pass
 
+    def run(self):
+        return {
+            "full_text": "",
+            "color": "#FFFFFF"
+        }
+
 
 class PluginModuleBase:
 
