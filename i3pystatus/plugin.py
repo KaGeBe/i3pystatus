@@ -1,4 +1,4 @@
-from i3pystatus import Module, IntervalModule
+from i3pystatus import Module
 
 
 class DefaultPlugin:
@@ -19,7 +19,7 @@ class PluginModuleBase:
         ("plugin", "The object that really implements this module."),
     )
 
-    required = ("plugin")
+    required = ("plugin",)
 
     def test(self):
         return self.plugin.test()
@@ -36,10 +36,3 @@ class PluginModuleBase:
 
 class PluginModule(PluginModuleBase, Module):
     pass
-
-
-class IntervalPluginModule(PluginModuleBase, IntervalModule):
-
-    settings = PluginModuleBase.settings + (
-        ("interval", "The plugin interval"),
-    )
