@@ -1,5 +1,5 @@
-from plugin import PluginModuleBase
 from i3pystatus import IntervalModule
+from i3pystatus.plugin import PluginModuleBase
 
 
 class IntervalPluginModule(PluginModuleBase, IntervalModule):
