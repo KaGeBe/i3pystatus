@@ -49,10 +49,7 @@ class Battery:
         return self._percentage("_DESIGN" if design else "") * 100
 
     def status(self):
-        if self.consumption():
-            return "Discharging" if self.battery_info["STATUS"] == "Discharging" else "Charging"
-        else:
-            return "Full"
+        return self.bat["STATUS"]
 
 
 class BatteryCharge(Battery):
