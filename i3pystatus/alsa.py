@@ -2,17 +2,26 @@ from alsaaudio import Mixer, ALSAAudioError
 
 from i3pystatus import IntervalModule
 
+
 class ALSA(IntervalModule):
+
     """
     Shows volume of ALSA mixer. You can also use this for inputs, btw.
 
     Requires pyalsaaudio
+
+    Available formatters:
+
+    * `{volume}` — the current volume in percent
+    * `{muted}` — the value of one of the `muted` or `unmuted` settings
+    * `{card}` — the associated soundcard
+    * `{mixer}` — the associated ALSA mixer
     """
 
     interval = 1
 
     settings = (
-        ("format", "{volume} is the current volume, {muted} is one of `muted` or `unmuted`. {card} is the sound card used; {mixer} the mixer."),
+        "format",
         ("mixer", "ALSA mixer"),
         ("mixer_id", "ALSA mixer id"),
         ("card", "ALSA sound card"),
@@ -47,7 +56,8 @@ class ALSA(IntervalModule):
         }
 
     def create_mixer(self):
-        self.alsamixer = Mixer(control=self.mixer, id=self.mixer_id, cardindex=self.card)
+        self.alsamixer = Mixer(
+            control=self.mixer, id=self.mixer_id, cardindex=self.card)
 
     def run(self):
         self.create_mixer()
@@ -55,10 +65,11 @@ class ALSA(IntervalModule):
         muted = False
         if self.has_mute:
             muted = self.alsamixer.getmute()[self.channel] == 1
+
         self.fdict["volume"] = self.alsamixer.getvolume()[self.channel]
         self.fdict["muted"] = self.muted if muted else self.muted
 
         self.output = {
-            "full_text" : self.format.format(**self.fdict),
+            "full_text": self.format.format(**self.fdict),
             "color": self.color_muted if muted else self.color,
         }

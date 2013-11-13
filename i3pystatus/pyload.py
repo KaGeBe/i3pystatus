@@ -1,23 +1,27 @@
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import http.cookiejar
 import webbrowser
 import json
 
 from i3pystatus import IntervalModule
 
+
 class pyLoad(IntervalModule):
+
     """
     Shows pyLoad status
 
     Available formatters:
-    * captcha (see captcha_true and captcha_false, which are the values filled in for this formatter)
-    * progress (average over all running downloads)
-    * progress_all (percentage of completed files/links in queue)
-    * speed (kilobytes/s)
-    * download (downloads enabled, also see download_true and download_false)
-    * total (number of downloads)
-    * free_space (free space in download directory in gigabytes)
+    * `{captcha}` (see captcha_true and captcha_false, which are the values filled in for this formatter)
+    * `{progress}` (average over all running downloads)
+    * `{progress_all}` (percentage of completed files/links in queue)
+    * `{speed}` (kilobytes/s)
+    * `{download}` (downloads enabled, also see download_true and download_false)
+    * `{total}` (number of downloads)
+    * `{free_space}` (free space in download directory in gigabytes)
     """
     interval = 5
 
@@ -40,12 +44,13 @@ class pyLoad(IntervalModule):
     def _rpc_call(self, method, data=None):
         if not data:
             data = {}
-        urlencoded  = urllib.parse.urlencode(data).encode("ascii")
+        urlencoded = urllib.parse.urlencode(data).encode("ascii")
         return json.loads(self.opener.open("{address}/api/{method}/".format(address=self.address, method=method), urlencoded).read().decode("utf-8"))
 
     def init(self):
         self.cj = http.cookiejar.CookieJar()
-        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cj))
+        self.opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(self.cj))
 
     def login(self):
         return self._rpc_call("login", {
@@ -59,7 +64,8 @@ class pyLoad(IntervalModule):
         downloads_status = self._rpc_call("statusDownloads")
 
         if downloads_status:
-            progress = sum(dl["percent"] for dl in downloads_status) / len(downloads_status) * 100
+            progress = sum(dl["percent"]
+                           for dl in downloads_status) / len(downloads_status) * 100
         else:
             progress = 100.0
 
@@ -67,7 +73,7 @@ class pyLoad(IntervalModule):
             "download": self.download_true if server_status["download"] else self.download_false,
             "speed": server_status["speed"] / 1024,
             "progress": progress,
-            "progress_all":  sum(pkg["linksdone"] for pkg in self._rpc_call("getQueue")) / server_status["total"] * 100,
+            "progress_all": sum(pkg["linksdone"] for pkg in self._rpc_call("getQueue")) / server_status["total"] * 100,
             "captcha": self.captcha_true if self._rpc_call("isCaptchaWaiting") else self.captcha_false,
             "free_space": self._rpc_call("freeSpace") / (1024 ** 3),
         }

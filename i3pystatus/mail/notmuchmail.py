@@ -4,11 +4,12 @@
 # note that this needs the notmuch python bindings. For more info see:
 # http://notmuchmail.org/howto/#index4h2
 import notmuch
-import json
 
 from i3pystatus.mail import Backend
 
+
 class Notmuch(Backend):
+
     """
     This class uses the notmuch python bindings to check for the
     number of messages in the notmuch database with the tags "inbox"
@@ -23,3 +24,5 @@ class Notmuch(Backend):
     @property
     def unread(self):
         return notmuch.Query(self.db, "tag:unread and tag:inbox").count_messages()
+
+Backend = Notmuch

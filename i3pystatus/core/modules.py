@@ -1,13 +1,8 @@
 
-import time
+from i3pystatus.core.settings import SettingsBase
+from i3pystatus.core.threading import Manager
+from i3pystatus.core.util import convert_position
 
-from .settings import SettingsBase
-from .threading import Manager
-from .util import convert_position, chain
-
-__all__ = [
-    "Module", "AsyncModule", "IntervalModule",
-]
 
 class Module(SettingsBase):
     output = None
@@ -23,22 +18,18 @@ class Module(SettingsBase):
             self.output["instance"] = str(id(self))
             json.insert(convert_position(self.position, json), self.output)
 
-    def test(self):
-        """
-        Return True if settings seem ok (i.e. login credentials and such are valid)
-        or a string describing the problem
-        """
-        return True
+    def run(self):
+        pass
 
     def on_click(self, button):
-        if button == 1: # Left mouse button
+        if button == 1:  # Left mouse button
             self.on_leftclick()
-        elif button == 3: # Right mouse button
+        elif button == 3:  # Right mouse button
             self.on_rightclick()
 
-    @chain
     def move(self, position):
         self.position = position
+        return self
 
     def on_leftclick(self):
         pass
@@ -46,11 +37,9 @@ class Module(SettingsBase):
     def on_rightclick(self):
         pass
 
-    def __repr__(self):
-        return self.__class__.__name__
 
 class IntervalModule(Module):
-    interval = 5 # seconds
+    interval = 5  # seconds
     managers = {}
 
     def registered(self, status_handler):
@@ -60,11 +49,7 @@ class IntervalModule(Module):
             am = Manager(self.interval)
             am.append(self)
             IntervalModule.managers[self.interval] = am
-
-    @classmethod
-    def _start(cls):
-        for manager in cls.managers.values():
-            manager.start()
+            am.start()
 
     def __call__(self):
         self.run()
@@ -74,7 +59,3 @@ class IntervalModule(Module):
 
         Do not rely on this being called from the same thread at all times.
         If you need to always have the same thread context, subclass AsyncModule."""
-
-START_HOOKS = (
-    IntervalModule._start,
-)

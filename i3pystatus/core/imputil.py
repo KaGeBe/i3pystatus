@@ -1,6 +1,8 @@
 import inspect
 import types
 from importlib import import_module
+from i3pystatus.core.exceptions import ConfigAmbigiousClassesError, ConfigInvalidModuleError
+
 
 class ClassFinder:
     """Support class to find classes of specific bases in a module"""
@@ -17,11 +19,13 @@ class ClassFinder:
             )
         return predicate
 
-    def search_module(self, module):
-        return list(zip(*inspect.getmembers(module, self.predicate_factory(module))))[1]
+    def get_matching_classes(self, module):
+        # Transpose [ (name, list), ... ] to ( [name, ...], [list, ...] )
+        classes = list(zip(*inspect.getmembers(module, self.predicate_factory(module))))
+        return classes[1] if classes else []
 
     def get_class(self, module):
-        classes = self.search_module(module)
+        classes = self.get_matching_classes(module)
 
         if len(classes) > 1:
             # If there are multiple Module clases bundled in one module,
@@ -43,5 +47,6 @@ class ClassFinder:
         elif inspect.isclass(module) and issubclass(module, self.baseclass):
             return module(*args, **kwargs)
         elif args or kwargs:
-            raise ValueError("Additional arguments are invalid if 'module' is already an object")
+            raise ValueError(
+                "Additional arguments are invalid if 'module' is already an object")
         return module

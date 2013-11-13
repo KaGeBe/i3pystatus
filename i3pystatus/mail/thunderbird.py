@@ -7,9 +7,6 @@
 # The plugin must be active and thunderbird running for the module to work
 # properly.
 
-import json
-import threading
-import time
 from functools import partial
 
 import dbus
@@ -18,7 +15,9 @@ from gi.repository import GObject
 
 from i3pystatus.mail import Backend
 
+
 class Thunderbird(Backend):
+
     """
     This class listens for dbus signals emitted by
     the dbus-sender extension for thunderbird.
@@ -56,3 +55,5 @@ class Thunderbird(Backend):
     def unread(self):
         self.run()
         return len(self._unread)
+
+Backend = Thunderbird

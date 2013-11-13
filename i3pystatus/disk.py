@@ -3,12 +3,14 @@ import os
 from i3pystatus import IntervalModule
 from .core.util import round_dict
 
-class Disk(IntervalModule):
-    """
-    Gets used, free, available and total amount of bytes on the given mounted filesystem.
 
-    These values can also be expressed in percentages with the percentage_used, percentage_free
-    and percentage_avail formats.
+class Disk(IntervalModule):
+
+    """
+    Gets `{used}`, `{free}`, `{available}` and `{total}` amount of bytes on the given mounted filesystem.
+
+    These values can also be expressed in percentages with the `{percentage_used}`, `{percentage_free}`
+    and `{percentage_avail}` formats.
     """
 
     settings = (
@@ -18,11 +20,9 @@ class Disk(IntervalModule):
     required = ("path",)
     color = "#FFFFFF"
     format = "{free}/{avail}"
-    divisor = 1024**3
+    divisor = 1024 ** 3
 
     def run(self):
-        cdict = {}
-
         stat = os.statvfs(self.path)
         cdict = {
             "total": (stat.f_bsize * stat.f_blocks) / self.divisor,
