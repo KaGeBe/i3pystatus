@@ -1,9 +1,10 @@
-..  Always edit README.tpl.md and create README.md by running
-    python -m i3pystatus.mkdocs You can also let the maintainer do the
-    latter :)
+..  Always edit README.tpl.rst
 
 i3pystatus
 ==========
+
+.. image:: https://travis-ci.org/enkore/i3pystatus.svg?branch=master
+    :target: https://travis-ci.org/enkore/i3pystatus
 
 i3pystatus is a (hopefully growing) collection of python scripts for 
 status output compatible to i3status / i3bar of the i3 window manager.
@@ -11,8 +12,11 @@ status output compatible to i3status / i3bar of the i3 window manager.
 Installation
 ------------
 
-Note: i3pystatus requires Python 3.2 or newer and is not compatible with
-Python 2.x.
+.. admonition:: Note
+
+    i3pystatus requires Python 3.2 or newer and is not compatible with
+    Python 2.x. Some modules require additional dependencies
+    documented below (see `Modules`_).
 
 From PyPI package `i3pystatus <https://pypi.python.org/pypi/i3pystatus>`_
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,17 +33,78 @@ Packages for your OS
 Release Notes
 -------------
 
-3.28 (not released yet)
-+++++++++++++++++++++++
+Contributors
+++++++++++++
 
-* **If you're currently using the ``i3pystatus`` command to run your i3bar**:
-    Replace ``i3pystatus`` command in your i3 configuration with ``python ~/path/to/your/i3pystatus.py``
-* New options for `mem`_ (thanks Arvedui)
+* aaron-lebo
+* afics
+* al45tair
+* Arvedui
+* cganas
+* dubwoc
+* enkore (current maintainer)
+* gwarf
+* janoliver (started the project)
+* jasonmhite
+* jedrz
+* jorio
+* mekanix
+* micha-a-schmidt
+* philipdexter
+* sbrunner
+* siikamiika
+* talwrii
+* tomxtobin
+* tony
+* yemu
+* zzatkin
+
+next
+++++
+
+3.30
+++++
+
+* `text`_: add cmd_leftclick and cmd_rightclick options
+* `weather`_: add colorize option
+* `disk`_: add color and round_size options
+* `mem`_: add round_size option
+* `mpd`_: next song on right click
+* `network`_ and `wireless`_: support interfaces enslaved to a bonding master
+* `alsa`_ and `pulseaudio`_: added optional "formated_muted"
+  setting. If provided, it will be used instead of "format" when the
+  audio is muted.
+* `parcel`_: added support for Itella (Finnish national postal service)
+* `network`_: detached_down is now True by default
+* `temp`_: removed color_critical and high_factor options
+* `temp`_: fixed issue with Linux kernels 3.15 and newer
+
+3.29
+++++
+
+* `network`_: prefer non link-local v6 addresses
+* `mail`_: Open email client and refresh email with mouse click
+* `disk`_: Add display and critical limit
+* `battery`_: fix errors if CURRENT_NOW is not present
+* `battery`_: add configurable colors
+* `load`_: add configurable colors and limit
+* `parcel`_: rewrote DHL tracker
+* Add `spotify`_ module
+
+3.28
+++++
+
+* **If you're currently using the i3pystatus command to run your i3bar**:
+    Replace ``i3pystatus`` command in your i3 configuration with ``python ~/path/to/your/config.py``
+* Do not name your script i3pystatus.py or it will break imports.
+* New options for `mem`_
 * Added `cpu\_usage`_
 * Improved error handling
 * Removed ``i3pystatus`` binary
 * pulseaudio: changed context name to "i3pystatus_pulseaudio"
+* Add maildir backend for mails
 * Code changes
+* Removed DHL tracker of parcel module, because it doesn't work anymore.
 
 3.27
 ++++
@@ -70,8 +135,9 @@ Configuration
 
 The config file is just a normal Python script.
 
-A simple configuration file could look like this (note the additional dependencies
-from network, wireless and pulseaudio in this example):
+A simple configuration file could look like this (note the additional
+dependencies from `network`_, `wireless`_ and `pulseaudio`_ in this
+example):
 
 ::
 
@@ -139,7 +205,7 @@ from network, wireless and pulseaudio in this example):
     # If it's down just the interface name (eth0) will be displayed in red
     # (defaults of format_down and color_down)
     #
-    # Note: the network module requires PyPI package netifaces-py3
+    # Note: the network module requires PyPI package netifaces
     status.register("network",
         interface="eth0",
         format_up="{v4cidr}",)
@@ -147,7 +213,7 @@ from network, wireless and pulseaudio in this example):
     # Has all the options of the normal network and adds some wireless specific things
     # like quality and network names.
     #
-    # Note: requires both netifaces-py3 and basiciw
+    # Note: requires both netifaces and basiciw
     status.register("wireless",
         interface="wlan0",
         format_up="{essid} {quality:03.0f}%",)
@@ -193,7 +259,7 @@ Formatting
 ++++++++++
 
 All modules let you specifiy the exact output formatting using a
-`format string <http://docs.python.org/3/library/string.html#formatstrings`_, which
+`format string <http://docs.python.org/3/library/string.html#formatstrings>`_, which
 gives you a great deal of flexibility.
 
 If a module gives you a float, it probably has a ton of
@@ -230,7 +296,7 @@ a mere extension of the standard formatting method.
 
 The time format that should be used is specified using the format specifier, i.e.
 with some_time being 3951 seconds a format string like ``{some_time:%h:%m:%s}``
-would produce ``1:5:51``
+would produce ``1:5:51``.
 
 * ``%h``, ``%m`` and ``%s`` are the hours, minutes and seconds without
   leading zeros (i.e. 0 to 59 for minutes and seconds)
@@ -245,7 +311,7 @@ would produce ``1:5:51``
 * When the module in question also uses formatp, 0 seconds counts as
   "not known".
 * The formatted time is stripped, i.e. spaces on both ends of the
-  result are removed
+  result are removed.
 
 Modules
 -------
@@ -267,5 +333,11 @@ use IntervalModule, which just calls a function repeatedly in a specified interv
 
 The output attribute should be set to a dictionary which represents your modules output,
 the protocol is documented `here <http://i3wm.org/docs/i3bar-protocol.html>`_.
+
+To update this readme run ``python -m i3pystatus.mkdocs`` in the
+repository root and you're done :)
+
+Developer documentation is available in the source code and `here
+<http://i3pystatus.readthedocs.org/en/latest/>`_.
 
 **Patches and pull requests are very welcome :-)**

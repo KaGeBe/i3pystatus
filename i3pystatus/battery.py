@@ -53,18 +53,29 @@ class Battery:
 
 
 class BatteryCharge(Battery):
+    def __init__(self, bi):
+        bi["CHARGE_FULL"] = bi["CHARGE_FULL_DESIGN"] if bi["CHARGE_NOW"] > bi["CHARGE_FULL"] else bi["CHARGE_FULL"]
+        super().__init__(bi)
+
     def consumption(self):
-        return self.battery_info["VOLTAGE_NOW"] * self.battery_info["CURRENT_NOW"]  # V  * A = W
+        if "VOLTAGE_NOW" in self.battery_info and "CURRENT_NOW" in self.battery_info:
+            return self.battery_info["VOLTAGE_NOW"] * self.battery_info["CURRENT_NOW"]  # V * A = W
+        else:
+            return -1
 
     def _percentage(self, design):
         return self.battery_info["CHARGE_NOW"] / self.battery_info["CHARGE_FULL" + design]
 
     def remaining(self):
         if self.status() == "Discharging":
-            # Ah / A = h * 60 min = min
-            return self.battery_info["CHARGE_NOW"] / self.battery_info["CURRENT_NOW"] * 60
+            if "CHARGE_NOW" in self.battery_info and "CURRENT_NOW" in self.battery_info:
+                # Ah / A = h * 60 min = min
+                return self.battery_info["CHARGE_NOW"] / self.battery_info["CURRENT_NOW"] * 60
+            else:
+                return -1
         else:
-            return (self.battery_info["CHARGE_FULL"] - self.battery_info["CHARGE_NOW"]) / self.battery_info["CURRENT_NOW"] * 60
+            return (self.battery_info["CHARGE_FULL"] - self.battery_info["CHARGE_NOW"]) / self.battery_info[
+                "CURRENT_NOW"] * 60
 
 
 class BatteryEnergy(Battery):
@@ -79,7 +90,8 @@ class BatteryEnergy(Battery):
             # Wh / W = h * 60 min = min
             return self.battery_info["ENERGY_NOW"] / self.battery_info["POWER_NOW"] * 60
         else:
-            return (self.battery_info["ENERGY_FULL"] - self.battery_info["ENERGY_NOW"]) / self.battery_info["POWER_NOW"] * 60
+            return (self.battery_info["ENERGY_FULL"] - self.battery_info["ENERGY_NOW"]) / self.battery_info[
+                "POWER_NOW"] * 60
 
 
 class BatteryChecker(IntervalModule):
@@ -106,6 +118,8 @@ class BatteryChecker(IntervalModule):
         ("alert_format_body", "The body text of the notification, all formatters can be used"),
         ("path", "Override the default-generated path"),
         ("status", "A dictionary mapping ('DIS', 'CHR', 'FULL') to alternative names"),
+        ("color", "The text color"),
+        ("critical_color", "The critical color"),
     )
     battery_ident = "BAT0"
     format = "{status} {remaining}"
@@ -119,6 +133,8 @@ class BatteryChecker(IntervalModule):
     alert_percentage = 10
     alert_format_title = "Low battery"
     alert_format_body = "Battery {battery_ident} has only {percentage:.2f}% ({remaining:%E%hh:%Mm}) remaining!"
+    color = "#ffffff"
+    critical_color = "#ff0000"
 
     path = None
 
@@ -129,7 +145,7 @@ class BatteryChecker(IntervalModule):
 
     def run(self):
         urgent = False
-        color = "#ffffff"
+        color = self.color
 
         battery = Battery.create(self.path)
 
@@ -149,7 +165,7 @@ class BatteryChecker(IntervalModule):
                 fdict["status"] = "DIS"
                 if battery.percentage() <= self.alert_percentage:
                     urgent = True
-                    color = "#ff0000"
+                    color = self.critical_color
             else:
                 fdict["status"] = "CHR"
         else:
@@ -170,5 +186,5 @@ class BatteryChecker(IntervalModule):
             "full_text": formatp(self.format, **fdict).strip(),
             "instance": self.battery_ident,
             "urgent": urgent,
-            "color": color
+            "color": color,
         }

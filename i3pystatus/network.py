@@ -1,7 +1,6 @@
 from itertools import zip_longest
 import subprocess
 
-# PyPI: netifaces-py3
 import netifaces
 
 from i3pystatus import IntervalModule
@@ -11,7 +10,7 @@ from i3pystatus import IntervalModule
 
 def count_bits(integer):
     bits = 0
-    while(integer):
+    while (integer):
         integer &= integer - 1
         bits += 1
     return bits
@@ -46,12 +45,34 @@ def cidr4(addr, mask):
     return "{addr}/{bits}".format(addr=addr, bits=prefix4(mask))
 
 
-class Network(IntervalModule):
+def get_bonded_slaves():
+    try:
+        with open("/sys/class/net/bonding_masters") as f:
+            masters = f.read().split()
+    except FileNotFoundError:
+        return {}
+    slaves = {}
+    for master in masters:
+        with open("/sys/class/net/{}/bonding/slaves".format(master)) as f:
+            for slave in f.read().split():
+                slaves[slave] = master
+    return slaves
 
+
+def sysfs_interface_up(interface):
+    try:
+        with open("/sys/class/net/{}/operstate".format(interface)) as f:
+            status = f.read().strip()
+    except FileNotFoundError:
+        raise RuntimeError("Unknown interface {iface}!".format(iface=interface))
+    return status == "up"
+
+
+class Network(IntervalModule):
     """
     Display network information about a interface.
 
-    Requires the PyPI package `netifaces-py3`.
+    Requires the PyPI package `netifaces`.
 
     Available formatters:
 
@@ -81,7 +102,7 @@ class Network(IntervalModule):
     format_down = "{interface}"
     color_up = "#00FF00"
     color_down = "#FF0000"
-    detached_down = False
+    detached_down = True
 
     def init(self):
         if self.interface not in netifaces.interfaces() and not self.detached_down:
@@ -95,13 +116,31 @@ class Network(IntervalModule):
             return self.color_down, self.format_down, {"interface": self.interface, "name": self.name}, False
 
         info = netifaces.ifaddresses(self.interface)
+        slaves = get_bonded_slaves()
+        try:
+            master = slaves[self.interface]
+        except KeyError:
+            pass
+        else:
+            if sysfs_interface_up(self.interface):
+                master_info = netifaces.ifaddresses(master)
+                for af in (netifaces.AF_INET, netifaces.AF_INET6):
+                    try:
+                        info[af] = master_info[af]
+                    except KeyError:
+                        pass
         up = netifaces.AF_INET in info or netifaces.AF_INET6 in info
         fdict = dict(
             zip_longest(["v4", "v4mask", "v4cidr", "v6", "v6mask", "v6cidr"], [], fillvalue=""))
+
+        try:
+            mac = info[netifaces.AF_PACKET][0]["addr"]
+        except KeyError:
+            mac = "NONE"
         fdict.update({
             "interface": self.interface,
             "name": self.name,
-            "mac": info[netifaces.AF_PACKET][0]["addr"],
+            "mac": mac,
         })
 
         if up:
@@ -113,10 +152,12 @@ class Network(IntervalModule):
                 fdict["v4mask"] = v4["netmask"]
                 fdict["v4cidr"] = cidr4(v4["addr"], v4["netmask"])
             if netifaces.AF_INET6 in info:
-                v6 = info[netifaces.AF_INET6][0]
-                fdict["v6"] = v6["addr"]
-                fdict["v6mask"] = v6["netmask"]
-                fdict["v6cidr"] = cidr6(v6["addr"], v6["netmask"])
+                for v6 in info[netifaces.AF_INET6]:
+                    fdict["v6"] = v6["addr"]
+                    fdict["v6mask"] = v6["netmask"]
+                    fdict["v6cidr"] = cidr6(v6["addr"], v6["netmask"])
+                    if not v6["addr"].startswith("fe80::"):  # prefer non link-local addresses
+                        break
         else:
             format = self.format_down
             color = self.color_down

@@ -1,6 +1,4 @@
-
-
-class DesktopNotification:
+class BaseDesktopNotification:
     """
     Class to display a desktop notification
 
@@ -25,6 +23,11 @@ class DesktopNotification:
         :returns: boolean indicating success
         """
         return False
+
+
+class DesktopNotification(BaseDesktopNotification):
+    pass
+
 
 try:
     from gi.repository import Notify

@@ -1,16 +1,10 @@
-
 import socket
 
 from i3pystatus import IntervalModule, formatp
 from i3pystatus.core.util import TimeWrapper
 
 
-def format_time(seconds):
-    return "{}:{:02}".format(*divmod(int(seconds), 60)) if seconds else ""
-
-
 class MPD(IntervalModule):
-
     """
     Displays various information from MPD (the music player daemon)
 
@@ -41,6 +35,7 @@ class MPD(IntervalModule):
 
     host = "localhost"
     port = 6600
+    s = None
     format = "{title} {status}"
     format_sparse = None
     status = {
@@ -52,28 +47,31 @@ class MPD(IntervalModule):
     vol = 100
 
     def _mpd_command(self, sock, command):
-        sock.send((command + "\n").encode("utf-8"))
-        reply = sock.recv(16384).decode("utf-8")
-        replylines = reply.split("\n")[:-2]
+        try:
+            sock.send((command + "\n").encode("utf-8"))
+        except Exception as e:
+            self.s = socket.create_connection((self.host, self.port))
+            sock = self.s
+            sock.recv(8192)
+            sock.send((command + "\n").encode("utf-8"))
+        try:
+            reply = sock.recv(16384).decode("utf-8")
+            replylines = reply.split("\n")[:-2]
 
-        return dict(
-            (line.split(": ", 1)[0], line.split(": ", 1)[1]) for line in replylines
-        )
+            return dict(
+                (line.split(": ", 1)) for line in replylines
+            )
+        except Exception as e:
+            return None
 
     def init(self):
         if not self.format_sparse:
             self.format_sparse = self.format
 
     def run(self):
-        with socket.create_connection((self.host, self.port)) as s:
-            # Skip "OK MPD ..."
-            s.recv(8192)
-
-            fdict = {}
-
-            status = self._mpd_command(s, "status")
-            currentsong = self._mpd_command(s, "currentsong")
-
+        try:
+            status = self._mpd_command(self.s, "status")
+            currentsong = self._mpd_command(self.s, "currentsong")
             fdict = {
                 "pos": int(status.get("song", 0)) + 1,
                 "len": int(status["playlistlength"]),
@@ -88,25 +86,21 @@ class MPD(IntervalModule):
                 "bitrate": int(status.get("bitrate", 0)),
 
             }
-
             self.output = {
                 "full_text": formatp(self.format, **fdict).strip(),
             }
+        except Exception as e:
+            self.output = {"full_text": "error connecting MPD"}
 
     def on_leftclick(self):
-        with socket.create_connection(("localhost", self.port)) as s:
-            s.recv(8192)
-
-            self._mpd_command(s, "pause %i" %
-                              (0 if self._mpd_command(s, "status")["state"] == "pause" else 1))
+        try:
+            self._mpd_command(self.s, "pause %i" %
+                                      (0 if self._mpd_command(self.s, "status")["state"] == "pause" else 1))
+        except Exception as e:
+            pass
 
     def on_rightclick(self):
-        with socket.create_connection(("localhost", self.port)) as s:
-            s.recv(8192)
-
-            vol = int(self._mpd_command(s, "status")["volume"])
-            if vol == 0:
-                self._mpd_command(s, "setvol %i" % self.vol)
-            else:
-                self.vol = vol
-                self._mpd_command(s, "setvol 0")
+        try:
+            self._mpd_command(self.s, "next")
+        except Exception as e:
+            pass

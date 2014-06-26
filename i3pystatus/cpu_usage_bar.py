@@ -1,21 +1,21 @@
 # -*- coding:utf-8 -*-
 
 from i3pystatus import IntervalModule
+from i3pystatus.core.util import make_bar
 
-
-class CpuUsage(IntervalModule):
+class CpuUsageBar(IntervalModule):
     """
-    Shows CPU usage.
+    Shows CPU usage as a bar (made with unicode box characters).
     The first output will be inacurate
     Linux only
 
     Available formatters:
 
-    * {usage}
+    * {usage_bar}
 
     """
 
-    format = "{usage:02}%"
+    format = "{usage_bar}"
     settings = (
         ("format", "format string"),
     )
@@ -49,10 +49,12 @@ class CpuUsage(IntervalModule):
         self.prev_idle = cpu_total
         self.prev_busy = cpu_busy
 
-        cpu_busy_percentage = int(diff_cpu_busy / diff_cpu_total * 100)
+        cpu_busy_percentage = diff_cpu_busy / diff_cpu_total * 100
+        cpu_busy_bar = make_bar(cpu_busy_percentage)
 
         self.output = {
             "full_text": self.format.format(
-                usage=cpu_busy_percentage
+                usage_bar=cpu_busy_bar
             )
         }
+

@@ -1,9 +1,10 @@
-..  Always edit README.tpl.md and create README.md by running
-    python -m i3pystatus.mkdocs You can also let the maintainer do the
-    latter :)
+..  Always edit README.tpl.rst
 
 i3pystatus
 ==========
+
+.. image:: https://travis-ci.org/enkore/i3pystatus.svg?branch=master
+    :target: https://travis-ci.org/enkore/i3pystatus
 
 i3pystatus is a (hopefully growing) collection of python scripts for 
 status output compatible to i3status / i3bar of the i3 window manager.
@@ -11,8 +12,11 @@ status output compatible to i3status / i3bar of the i3 window manager.
 Installation
 ------------
 
-Note: i3pystatus requires Python 3.2 or newer and is not compatible with
-Python 2.x.
+.. admonition:: Note
+
+    i3pystatus requires Python 3.2 or newer and is not compatible with
+    Python 2.x. Some modules require additional dependencies
+    documented below (see `Modules`_).
 
 From PyPI package `i3pystatus <https://pypi.python.org/pypi/i3pystatus>`_
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,17 +33,78 @@ Packages for your OS
 Release Notes
 -------------
 
-3.28 (not released yet)
-+++++++++++++++++++++++
+Contributors
+++++++++++++
 
-* **If you're currently using the ``i3pystatus`` command to run your i3bar**:
-    Replace ``i3pystatus`` command in your i3 configuration with ``python ~/path/to/your/i3pystatus.py``
-* New options for `mem`_ (thanks Arvedui)
+* aaron-lebo
+* afics
+* al45tair
+* Arvedui
+* cganas
+* dubwoc
+* enkore (current maintainer)
+* gwarf
+* janoliver (started the project)
+* jasonmhite
+* jedrz
+* jorio
+* mekanix
+* micha-a-schmidt
+* philipdexter
+* sbrunner
+* siikamiika
+* talwrii
+* tomxtobin
+* tony
+* yemu
+* zzatkin
+
+next
+++++
+
+3.30
+++++
+
+* `text`_: add cmd_leftclick and cmd_rightclick options
+* `weather`_: add colorize option
+* `disk`_: add color and round_size options
+* `mem`_: add round_size option
+* `mpd`_: next song on right click
+* `network`_ and `wireless`_: support interfaces enslaved to a bonding master
+* `alsa`_ and `pulseaudio`_: added optional "formated_muted"
+  setting. If provided, it will be used instead of "format" when the
+  audio is muted.
+* `parcel`_: added support for Itella (Finnish national postal service)
+* `network`_: detached_down is now True by default
+* `temp`_: removed color_critical and high_factor options
+* `temp`_: fixed issue with Linux kernels 3.15 and newer
+
+3.29
+++++
+
+* `network`_: prefer non link-local v6 addresses
+* `mail`_: Open email client and refresh email with mouse click
+* `disk`_: Add display and critical limit
+* `battery`_: fix errors if CURRENT_NOW is not present
+* `battery`_: add configurable colors
+* `load`_: add configurable colors and limit
+* `parcel`_: rewrote DHL tracker
+* Add `spotify`_ module
+
+3.28
+++++
+
+* **If you're currently using the i3pystatus command to run your i3bar**:
+    Replace ``i3pystatus`` command in your i3 configuration with ``python ~/path/to/your/config.py``
+* Do not name your script i3pystatus.py or it will break imports.
+* New options for `mem`_
 * Added `cpu\_usage`_
 * Improved error handling
 * Removed ``i3pystatus`` binary
 * pulseaudio: changed context name to "i3pystatus_pulseaudio"
+* Add maildir backend for mails
 * Code changes
+* Removed DHL tracker of parcel module, because it doesn't work anymore.
 
 3.27
 ++++
@@ -70,8 +135,9 @@ Configuration
 
 The config file is just a normal Python script.
 
-A simple configuration file could look like this (note the additional dependencies
-from network, wireless and pulseaudio in this example):
+A simple configuration file could look like this (note the additional
+dependencies from `network`_, `wireless`_ and `pulseaudio`_ in this
+example):
 
 ::
 
@@ -139,7 +205,7 @@ from network, wireless and pulseaudio in this example):
     # If it's down just the interface name (eth0) will be displayed in red
     # (defaults of format_down and color_down)
     #
-    # Note: the network module requires PyPI package netifaces-py3
+    # Note: the network module requires PyPI package netifaces
     status.register("network",
         interface="eth0",
         format_up="{v4cidr}",)
@@ -147,7 +213,7 @@ from network, wireless and pulseaudio in this example):
     # Has all the options of the normal network and adds some wireless specific things
     # like quality and network names.
     #
-    # Note: requires both netifaces-py3 and basiciw
+    # Note: requires both netifaces and basiciw
     status.register("wireless",
         interface="wlan0",
         format_up="{essid} {quality:03.0f}%",)
@@ -193,7 +259,7 @@ Formatting
 ++++++++++
 
 All modules let you specifiy the exact output formatting using a
-`format string <http://docs.python.org/3/library/string.html#formatstrings`_, which
+`format string <http://docs.python.org/3/library/string.html#formatstrings>`_, which
 gives you a great deal of flexibility.
 
 If a module gives you a float, it probably has a ton of
@@ -230,7 +296,7 @@ a mere extension of the standard formatting method.
 
 The time format that should be used is specified using the format specifier, i.e.
 with some_time being 3951 seconds a format string like ``{some_time:%h:%m:%s}``
-would produce ``1:5:51``
+would produce ``1:5:51``.
 
 * ``%h``, ``%m`` and ``%s`` are the hours, minutes and seconds without
   leading zeros (i.e. 0 to 59 for minutes and seconds)
@@ -245,7 +311,7 @@ would produce ``1:5:51``
 * When the module in question also uses formatp, 0 seconds counts as
   "not known".
 * The formatted time is stripped, i.e. spaces on both ends of the
-  result are removed
+  result are removed.
 
 Modules
 -------
@@ -277,6 +343,7 @@ Available formatters:
 Settings:
 
 :format:  (default: ``♪: {volume}``)
+:format_muted: optional format string to use when muted (default: ``None``)
 :mixer: ALSA mixer (default: ``Master``)
 :mixer_id: ALSA mixer id (default: ``0``)
 :card: ALSA sound card (default: ``0``)
@@ -285,6 +352,7 @@ Settings:
 :color_muted:  (default: ``#AAAAAA``)
 :color:  (default: ``#FFFFFF``)
 :channel:  (default: ``0``)
+:interval:  (default: ``1``)
 
 
 
@@ -295,6 +363,7 @@ backlight
 Screen backlight info
 
 Available formatters:
+
 * `{brightness}` — current brightness relative to max_brightness
 * `{max_brightness}` — maximum brightness value
 * `{percentage}` — current brightness in percent
@@ -305,6 +374,7 @@ Settings:
 :format: format string, formatters: brightness, max_brightness, percentage (default: ``{brightness}/{max_brightness}``)
 :backlight: backlight, see `/sys/class/backlight/` (default: ``acpi_video0``)
 :color:  (default: ``#FFFFFF``)
+:interval:  (default: ``5``)
 
 
 
@@ -334,7 +404,10 @@ Settings:
 :alert_format_title: The title of the notification, all formatters can be used (default: ``Low battery``)
 :alert_format_body: The body text of the notification, all formatters can be used (default: ``Battery {battery_ident} has only {percentage:.2f}% ({remaining:%E%hh:%Mm}) remaining!``)
 :path: Override the default-generated path (default: ``None``)
-:status: A dictionary mapping ('DIS', 'CHR', 'FULL') to alternative names (default: ``{'FULL': 'FULL', 'DIS': 'DIS', 'CHR': 'CHR'}``)
+:status: A dictionary mapping ('DIS', 'CHR', 'FULL') to alternative names (default: ``{'DIS': 'DIS', 'FULL': 'FULL', 'CHR': 'CHR'}``)
+:color: The text color (default: ``#ffffff``)
+:critical_color: The critical color (default: ``#ff0000``)
+:interval:  (default: ``5``)
 
 
 
@@ -348,6 +421,8 @@ This class shows a clock
 Settings:
 
 :format: stftime format string, `None` means to use the default, locale-dependent format (default: ``None``)
+:color: RGB hexadecimal code color specifier, default to #ffffff, set to `i3Bar` to use i3 bar default (default: ``#ffffff``)
+:interval:  (default: ``1``)
 
 
 
@@ -368,6 +443,7 @@ Available formatters:
 Settings:
 
 :format: format string (default: ``{usage:02}%``)
+:interval:  (default: ``5``)
 
 
 
@@ -375,17 +451,23 @@ disk
 ++++
 
 
-Gets `{used}`, `{free}`, `{available}` and `{total}` amount of bytes on the given mounted filesystem.
+Gets ``{used}``, ``{free}``, ``{available}`` and ``{total}`` amount of bytes on the given mounted filesystem.
 
-These values can also be expressed in percentages with the `{percentage_used}`, `{percentage_free}`
-and `{percentage_avail}` formats.
+These values can also be expressed as percentages with the ``{percentage_used}``, ``{percentage_free}``
+and ``{percentage_avail}`` formats.
 
 
 Settings:
 
 :format:  (default: ``{free}/{avail}``)
 :path:  (required)
-:divisor: divide all byte values by this value, commonly 1024**3 (gigabyte) (default: ``1073741824``)
+:divisor: divide all byte values by this value, default is 1024**3 (gigabyte) (default: ``1073741824``)
+:display_limit: if more space is available than this limit the module is hidden (default: ``inf``)
+:critical_limit: critical space limit (see critical_color) (default: ``0``)
+:critical_color: the critical color (default: ``#FF0000``)
+:color: the common color (default: ``#FFFFFF``)
+:round_size: precision, None for INT (default: ``2``)
+:interval:  (default: ``5``)
 
 
 
@@ -432,6 +514,10 @@ Shows system load
 Settings:
 
 :format: format string used for output. {avg1}, {avg5} and {avg15} are the load average of the last one, five and fifteen minutes, respectively. {tasks} is the number of tasks (i.e. 1/285, which indiciates that one out of 285 total tasks is runnable). (default: ``{avg1} {avg5}``)
+:color: The text color (default: ``#ffffff``)
+:critical_limit: Limit above which the load is considered critical (default: ``1``)
+:critical_color: The critical color (default: ``#ff0000``)
+:interval:  (default: ``5``)
 
 
 
@@ -446,12 +532,14 @@ The `backends` setting determines the backends to use.
 
 Settings:
 
-:backends: List of backends (instances of `i3pystatus.mail.xxx.zzz`)
+:backends: List of backends (instances of ``i3pystatus.mail.xxx.zzz``, i.e. ``i3pystatus.mail.imap.IMAP``)
 :color:  (default: ``#ffffff``)
 :color_unread:  (default: ``#ff0000``)
 :format:  (default: ``{unread} new email``)
 :format_plural:  (default: ``{unread} new emails``)
 :hide_if_null: Don't output anything if there are no new mails (default: ``True``)
+:email_client: The email client to open on left click (default: ``None``)
+:interval:  (default: ``5``)
 
 
 imap.IMAP
@@ -469,6 +557,19 @@ Settings:
 :password:  (required)
 :ssl:  (default: ``True``)
 :mailbox:  (default: ``INBOX``)
+
+
+
+maildir.MaildirMail
+~~~~~~~~~~~~~~~~~~~
+
+
+Checks for local mail in Maildir
+
+
+Settings:
+
+:directory:  (required)
 
 
 
@@ -542,7 +643,8 @@ Settings:
 :color: standard color (default: ``#00FF00``)
 :warn_color: defines the color used wann warn percentage ist exceeded (default: ``#FFFF00``)
 :alert_color: defines the color used when alert percentage is exceeded (default: ``#FF0000``)
-:round: round byte values to given length behind dot
+:round_size: defines number of digits in round (default: ``1``)
+:interval:  (default: ``5``)
 
 
 
@@ -561,6 +663,7 @@ Settings:
 :color:  (default: ``#7181fe``)
 :username:  (required)
 :password:  (required)
+:interval:  (default: ``5``)
 
 
 
@@ -592,6 +695,7 @@ Settings:
 :port: MPD port (default: ``6600``)
 :format: formatp string (default: ``{title} {status}``)
 :status: Dictionary mapping pause, play and stop to output (default: ``{'play': '▶', 'stop': '◾', 'pause': '▷'}``)
+:interval:  (default: ``1``)
 
 
 
@@ -601,7 +705,7 @@ network
 
 Display network information about a interface.
 
-Requires the PyPI package `netifaces-py3`.
+Requires the PyPI package `netifaces`.
 
 Available formatters:
 
@@ -625,8 +729,9 @@ Settings:
 :color_up:  (default: ``#00FF00``)
 :format_down:  (default: ``{interface}``)
 :color_down:  (default: ``#FF0000``)
-:detached_down: If the interface doesn't exist, display it as if it were down (default: ``False``)
+:detached_down: If the interface doesn't exist, display it as if it were down (default: ``True``)
 :name:  (default: ``eth0``)
+:interval:  (default: ``5``)
 
 
 
@@ -634,12 +739,22 @@ parcel
 ++++++
 
 
+Used to track parcel/shipments.
+
+Supported carriers: DHL, UPS, Itella
+
+- parcel.UPS("<id_code>")
+- parcel.DHL("<id_code>")
+- parcel.Itella("<id_code>"[, "en"|"fi"|"sv"])
+  Second parameter is language. Requires beautiful soup 4 (bs4)
+
 
 Settings:
 
-:instance: Tracker instance
+:instance: Tracker instance, for example ``parcel.UPS('your_id_code')``
 :format:  (default: ``{name}:{progress}``)
 :name: 
+:interval:  (default: ``60``)
 
 
 
@@ -660,6 +775,7 @@ Available formatters:
 Settings:
 
 :format:  (default: ``♪: {volume}``)
+:format_muted: optional format string to use when muted (default: ``None``)
 :muted:  (default: ``M``)
 :unmuted:  (default: ````)
 
@@ -692,6 +808,7 @@ Settings:
 :download_false:  (default: ``Downloads disabled``)
 :username:  (required)
 :password:  (required)
+:interval:  (default: ``5``)
 
 
 
@@ -710,6 +827,7 @@ Settings:
 :regex:  (required)
 :file: file to search for regex matches
 :flags: Python.re flags (default: ``0``)
+:interval:  (default: ``5``)
 
 
 
@@ -734,6 +852,26 @@ Settings:
 :color_down:  (default: ``#FF0000``)
 :path:  (required)
 :name:  (required)
+:interval:  (default: ``5``)
+
+
+
+spotify
++++++++
+
+
+This class shows information from Spotify.
+
+Left click will toggle pause/play of the current song.
+Right click will skip the song.
+
+Dependent on Playerctl ( https://github.com/acrisci/playerctl ) and GLib
+
+
+Settings:
+
+:format: Format string. {artist}, {title}, {album}, {volume}, and {length} are available for output. (default: ``{artist} - {title}``)
+:color: color of the output (default: ``#ffffff``)
 
 
 
@@ -748,10 +886,9 @@ AMD is currently not supported as they can only report a relative temperature, w
 
 Settings:
 
-:format: format string used for output. {temp} is the temperature in degrees celsius, {critical} and {high} are the trip point temps. (default: ``{temp} °C``)
+:format: format string used for output. {temp} is the temperature in degrees celsius (default: ``{temp} °C``)
 :color:  (default: ``#FFFFFF``)
-:color_critical:  (default: ``#FF0000``)
-:high_factor:  (default: ``0.7``)
+:interval:  (default: ``5``)
 
 
 
@@ -766,6 +903,8 @@ Settings:
 
 :text:  (required)
 :color: HTML color code #RRGGBB (default: ``None``)
+:cmd_leftclick: Shell command to execute on left click (default: ``test``)
+:cmd_rightclick: Shell command to execute on right click (default: ``test``)
 
 
 
@@ -786,8 +925,10 @@ Requires pywapi from PyPI.
 Settings:
 
 :location_code:  (required)
-:units: Celsius (C) or Fahrenheit (F) (default: ``C``)
+:colorize: Enable color with temperature and UTF-8 icons. (default: ``False``)
+:units: Celsius (metric) or Fahrenheit (imperial) (default: ``metric``)
 :format:  (default: ``{current_temp}``)
+:interval:  (default: ``20``)
 
 
 
@@ -797,7 +938,7 @@ wireless
 
 Display network information about a interface.
 
-Requires the PyPI packages `netifaces-py3` and `basiciw`.
+Requires the PyPI packages `netifaces` and `basiciw`.
 
 This is based on the network module, so all options and formatters are
 the same, except for these additional formatters and that detached_down doesn't work.
@@ -814,8 +955,9 @@ Settings:
 :color_up:  (default: ``#00FF00``)
 :format_down:  (default: ``{interface}``)
 :color_down:  (default: ``#FF0000``)
-:detached_down: If the interface doesn't exist, display it as if it were down (default: ``False``)
+:detached_down: If the interface doesn't exist, display it as if it were down (default: ``True``)
 :name:  (default: ``eth0``)
+:interval:  (default: ``5``)
 
 
 
@@ -828,6 +970,12 @@ use IntervalModule, which just calls a function repeatedly in a specified interv
 
 The output attribute should be set to a dictionary which represents your modules output,
 the protocol is documented `here <http://i3wm.org/docs/i3bar-protocol.html>`_.
+
+To update this readme run ``python -m i3pystatus.mkdocs`` in the
+repository root and you're done :)
+
+Developer documentation is available in the source code and `here
+<http://i3pystatus.readthedocs.org/en/latest/>`_.
 
 **Patches and pull requests are very welcome :-)**
 

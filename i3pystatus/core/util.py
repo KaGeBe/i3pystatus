@@ -1,4 +1,3 @@
-
 import collections
 import functools
 import re
@@ -51,9 +50,14 @@ def partition(iterable, limit, key=lambda x: x):
 def round_dict(dic, places):
     """
     Rounds all values in a dict containing only numeric types to `places` decimal places.
-    """
-    for key, value in dic.items():
-        dic[key] = round(value, places)
+    If places is None, round to INT.
+    """    
+    if places is None:
+        for key, value in dic.items():
+            dic[key] = round(value)
+    else:
+        for key, value in dic.items():
+            dic[key] = round(value, places)
 
 
 class ModuleList(collections.UserList):
@@ -163,7 +167,7 @@ def formatp(string, **kwargs):
     thus equivalent to a logical or of all enclosing groups with the enclosed
     group.
 
-    Escaped brackets, i.e. \\[ and \\] are copied verbatim to output.
+    Escaped brackets, i.e. \\\\[ and \\\\] are copied verbatim to output.
 
     :param string: Format string
     :param **kwargs: keyword arguments providing data for the format string
@@ -177,6 +181,7 @@ def formatp(string, **kwargs):
         They also have a string property containing associated text (empty for
         all tokens but String tokens).
         """
+
         class Token:
             string = ""
 
@@ -321,9 +326,9 @@ class TimeWrapper:
 
 
 def require(predicate):
-    """
-    Decorator factory for methods requiring a predicate. If the predicate is not fulfilled during a method call, the
-    method call is skipped and None is returned.
+    """Decorator factory for methods requiring a predicate. If the
+    predicate is not fulfilled during a method call, the method call
+    is skipped and None is returned.
 
     :param predicate: A callable returning a truth value
     :returns: Method decorator
@@ -331,14 +336,18 @@ def require(predicate):
     .. seealso::
 
         :py:func:`internet`
+
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
             if predicate():
                 return method(*args, **kwargs)
             return None
+
         return wrapper
+
     return decorator
 
 
@@ -353,3 +362,21 @@ def internet():
         return True
     except OSError:
         return False
+
+def make_bar(percentage):
+    """
+    Draws a bar made of unicode box characters.
+
+    :param percentage: A value between 0 and 100
+    :returns: Bar as a string
+    """
+
+    bars = [' ', '▏', '▎', '▍', '▌', '▋', '▋', '▊', '▊', '█']
+    tens = int(percentage / 10)
+    ones = int(percentage) - tens * 10
+    result = tens * '█'
+    if(ones >= 1):
+        result = result + bars[ones]
+    result = result + (10 - len(result)) * ' '
+    return result
+
